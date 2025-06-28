@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: all-apps
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: ${github_repo_url}    # The GitHub repository where your Argo CD YAMLs are stored
+    targetRevision: HEAD           # Use the latest commit on the branch (HEAD)
+    path: "./"                     # Point to the root of the repo, which contains subdirectories (external_dns, cert_manager)
+    helm:
+      values: |
+        global:
+          project_id: ${project_id}
+          hostedzone_name: ${hostedzone_name}
+          domain: ${domain}
+          letsencrypt_email: ${letsencrypt_email}
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: argocd               # Apply resources to the argocd namespace
+  syncPolicy:
+    automated:
+      prune: true                   # Automatically prune stale resources
+      selfHeal: true                # Automatically correct drifted resources

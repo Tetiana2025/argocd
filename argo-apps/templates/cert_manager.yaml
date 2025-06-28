@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://charts.jetstack.io'    # The Helm chart repository
+    chart: cert-manager                      # The name of the chart to install
+    targetRevision: 1.15.3                   # The specific chart  version
+    helm:
+      values: |
+        replicaCount: 2
+        installCRDs: true                    # Pass the installCRDs flag in the values block
+        google:
+          project: {{ .Values.global.project_id }}
+        serviceAccount:
+          create: false
+          name: cert-manager
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: cert-manager                   # The namespace where cert-manager will be installed
+  syncPolicy:
+    automated:
+      prune: true                             # Automatically prune stale resources
+      selfHeal: true                          # Automatically fix any drift in the resource
+

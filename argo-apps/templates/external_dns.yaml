@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+spec:
+  destination:
+    namespace: external-dns
+    server: 'https://kubernetes.default.svc'
+  source:
+    repoURL: 'https://charts.bitnami.com/bitnami'
+    chart: external-dns
+    targetRevision: 8.3.7
+    helm:
+      values: |                   # Helm values need to be under the "helm" section
+        provider: google
+        google:
+          project: {{ .Values.global.project_id }}   # Replace with your actual Google project ID
+        domainFilters:
+          - {{ .Values.global.domain }}  # Replace with the domain you're managing
+        sources:
+          - service
+        serviceAccount:
+          create: false
+          name: external-dns
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
